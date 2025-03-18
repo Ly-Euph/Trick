@@ -30,6 +30,7 @@ partial class UIButton
     private void OPENOPTION()
     {
         Debug.Log("オプション画面を開く");
+        Option.SetActive(true);
     }
 
     // ゲーム終了
@@ -74,6 +75,16 @@ partial class UIButton
         fpsManager.FPS_MODE_R(); // インデックス計算
         FpsModeText.text = fpsManager.UpdateMODEDisplay(); // 反映
     }
-
+    // サイズ変更
+    private void SIZEMODE_L()
+    {
+        screenSizeManager.SIZEMODE_L(); // インデックス計算
+        ScreenSizeText.text = screenSizeManager.UpdateSIZEDisplay(); // 反映
+    }
+    private void SIZEMODE_R()
+    {
+        screenSizeManager.SIZEMODE_R(); // インデックス計算
+        ScreenSizeText.text = screenSizeManager.UpdateSIZEDisplay(); // 反映
+    }
     #endregion
 }

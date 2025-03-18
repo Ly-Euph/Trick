@@ -8,6 +8,9 @@ public class UIManager : MonoBehaviour
 
     private static UIManager instance; // Singletonインスタンス
 
+    [Header("FPSManager"), SerializeField] FPSManager fps;
+    [Header("ScreenSizeManager"), SerializeField] ScreenSizeManager size;
+
     void Awake()
     {
         // Singletonパターン: 他のUIManagerが既に存在する場合、現在のインスタンスを削除
@@ -25,7 +28,7 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         // シーン内のすべてのUIButtonを検索
-        uiButtons = FindObjectsOfType<UIButton>();
+        uiButtons = FindObjectsOfType<UIButton>(true);
     }
 
     void Update()
@@ -34,7 +37,7 @@ public class UIManager : MonoBehaviour
             // 各UIButtonのUpdateBUTTON()を呼び出す
             foreach (var button in uiButtons)
             {
-                button.UpdateBUTTON(); // ボタンがUpdateBUTTONを実行
+                button.UpdateButton(); // ボタンがUpdateBUTTONを実行
             }
         }
     }

@@ -15,56 +15,52 @@ public class FPSManager : MonoBehaviour
     // 現在選択されているFPSのインデックス
     private int currentIndex_MODE = 0;
 
+    // インデックス計算
+    IndexFunc Index;
 
+
+    private void OnEnable()
+    {
+        if (Index != null) { return; }
+        Index = new IndexFunc();
+    }
     public void FPS_NUM_L()
     {
         // インデックスを減らして、範囲内に収める
-        currentIndex_FPS = GetCyclicIndex(currentIndex_FPS, -1, FPS.Length);
+        currentIndex_FPS = Index.GetCyclicIndex(currentIndex_FPS, -1, FPS.Length);
     }
     public void FPS_NUM_R()
     {
         // インデックスを増やして、範囲内に収める
-        currentIndex_FPS = GetCyclicIndex(currentIndex_FPS, 1, FPS.Length);
+        currentIndex_FPS = Index.GetCyclicIndex(currentIndex_FPS, 1, FPS.Length);
     }
     public void FPS_MDOE_L()
     {
         // インデックスを減らして、範囲内に収める
-        currentIndex_MODE = GetCyclicIndex(currentIndex_MODE, -1, FPSMODE.Length);
+        currentIndex_MODE = Index.GetCyclicIndex(currentIndex_MODE, -1, FPSMODE.Length);
     }
     public void FPS_MODE_R()
     {
         // インデックスを増やして、範囲内に収める
-        currentIndex_MODE = GetCyclicIndex(currentIndex_MODE, 1,FPSMODE.Length);
+        currentIndex_MODE = Index.GetCyclicIndex(currentIndex_MODE, 1,FPSMODE.Length);
     }
 
-    // FPSの表示を更新
+    /// <summary>
+    /// FPSの数値切替
+    /// </summary>
+    /// <returns>FPSの数値</returns>
     public string UpdateFPSDisplay()
     {
         // 現在のFPSをTextに表示
         return FPS[currentIndex_FPS];
     }
+    /// <summary>
+    /// FPS表示切替
+    /// </summary>
+    /// <returns>切替の有無</returns>
     public string UpdateMODEDisplay()
     {
         // 現在のFPSをTextに表示
         return FPSMODE[currentIndex_MODE];
-    }
-
-    // インデックスを範囲内で循環させる（増減する）
-    private int GetCyclicIndex(int currentIndex, int direction,int length)
-    {
-        // インデックスを増減
-        int nextIndex = currentIndex + direction;
-
-        // 範囲内に収める処理
-        if (nextIndex < 0)
-        {
-            nextIndex = length - 1; // 範囲外になったら最大インデックスに戻す
-        }
-        else if (nextIndex >= length)
-        {
-            nextIndex = 0; // 範囲外になったら最小インデックスに戻す
-        }
-
-        return nextIndex;
     }
 }
