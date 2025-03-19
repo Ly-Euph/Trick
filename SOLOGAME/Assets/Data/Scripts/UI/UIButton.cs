@@ -39,7 +39,9 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         /*画面サイズ切り替えのボタン*/
         SIZEMODE_L, // 切替の左ボタン
         SIZEMODE_R, // 切替の右ボタン
-        None
+
+        FIN,        // 設定完了
+        None,
     }
     // 基本的にはNoneで設定して使うときに変更一種類のみに設定すること
     [Header("ボタンの種類選択"), SerializeField] TitleButton titleButton=TitleButton.None;
@@ -58,12 +60,9 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     // アニメーションの設定
     [SerializeField] Animator anim;
-    // FPSの表示をしているテキスト
-    [SerializeField] Text FpsText;
-    [SerializeField] Text FpsModeText;
-    [SerializeField] Text ScreenSizeText;
     [SerializeField] FPSManager fpsManager;
     [SerializeField] ScreenSizeManager screenSizeManager;
+    [SerializeField] VolumeController volumeController;
 
     // プレイヤー名やルームIDを設定
     private string playerName = "Player1";  // 例としてプレイヤー名を設定
@@ -120,8 +119,6 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
                 // Enumの値ごとに対応する関数を実行
                 InvokeMatchingMethod(lrButton);
             }
-            // 非表示
-            nowSelectObj.SetActive(false);
         }
     }
 

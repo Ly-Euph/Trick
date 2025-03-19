@@ -47,6 +47,10 @@ partial class UIButton
     // ゲームに戻る
     private void RETURNGAME()
     {
+        // キャンバスごと非表示にするので個別に非表示にしなければならない
+        // 非表示
+        nowSelectObj.SetActive(false);
+
         Menu.SetActive(false);
     }
 
@@ -57,34 +61,39 @@ partial class UIButton
     private void FPS_NUM_L()
     {
         fpsManager.FPS_NUM_L(); // インデックス計算
-        FpsText.text = fpsManager.UpdateFPSDisplay(); // 反映
     }
     private void FPS_NUM_R()
     {
         fpsManager.FPS_NUM_R(); // インデックス計算
-        FpsText.text = fpsManager.UpdateFPSDisplay(); // 反映
     }
     // 表示切り替え
     private void FPS_MODE_L()
     {
         fpsManager.FPS_MDOE_L(); // インデックス計算
-        FpsModeText.text = fpsManager.UpdateMODEDisplay(); // 反映
     }
     private void FPS_MODE_R()
     {
         fpsManager.FPS_MODE_R(); // インデックス計算
-        FpsModeText.text = fpsManager.UpdateMODEDisplay(); // 反映
     }
     // サイズ変更
     private void SIZEMODE_L()
     {
         screenSizeManager.SIZEMODE_L(); // インデックス計算
-        ScreenSizeText.text = screenSizeManager.UpdateSIZEDisplay(); // 反映
     }
     private void SIZEMODE_R()
     {
         screenSizeManager.SIZEMODE_R(); // インデックス計算
-        ScreenSizeText.text = screenSizeManager.UpdateSIZEDisplay(); // 反映
     }
+    // 設定完了
+    private void FIN()
+    {
+        // データの保存
+        fpsManager.SAVE();
+        screenSizeManager.SAVE();
+        volumeController.SAVE();
+        // 非表示
+        nowSelectObj.SetActive(false);
+        Option.SetActive(false);
+    }    
     #endregion
 }

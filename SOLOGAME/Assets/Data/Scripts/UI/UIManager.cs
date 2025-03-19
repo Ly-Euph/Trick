@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
 
     [Header("FPSManager"), SerializeField] FPSManager fps;
     [Header("ScreenSizeManager"), SerializeField] ScreenSizeManager size;
+    [Header("VolumeController"), SerializeField] VolumeController volume;
 
     void Awake()
     {
@@ -29,10 +30,19 @@ public class UIManager : MonoBehaviour
     {
         // シーン内のすべてのUIButtonを検索
         uiButtons = FindObjectsOfType<UIButton>(true);
+
+        // データの読み込み
+        fps.LOAD();
+        size.LOAD();
+        volume.LOAD();
     }
 
     void Update()
     {
+        //　計算処理
+        fps.FPSdelta();
+
+        // ボタン入力
         if (Input.GetMouseButtonDown(0)) {
             // 各UIButtonのUpdateBUTTON()を呼び出す
             foreach (var button in uiButtons)
