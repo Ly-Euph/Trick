@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
     {
         // シーン内のすべてのUIButtonを検索
         uiButtons = FindObjectsOfType<UIButton>(true);
-
+        FadeInOut fade = FadeInOut.CreateInstance();
         // データの読み込み
         fps.LOAD();
         size.LOAD();
