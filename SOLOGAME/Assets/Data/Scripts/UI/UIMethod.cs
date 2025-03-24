@@ -6,24 +6,26 @@ using UnityEngine;
 
 partial class UIButton
 {
+    #region[MenuItem]
     // ルーム作成ボタン
     private void ROOMCREATE()
     {
         playerName = "NEKO";
-        string url = gasUrl + "?action=createRoom"
-                           + "&roomId=" + Uri.EscapeDataString(roomId)
-                           + "&player1=" + Uri.EscapeDataString(playerName); Debug.Log("Sending request to GAS with URL: " + url);  // ここでURLを確認
-        StartCoroutine(SendDataToGAS(url));
+        string message = "?action=createRoom"
+                         + "&roomId=" + Uri.EscapeDataString(roomId)
+                           + "&player1=" + Uri.EscapeDataString(playerName); 
+        Debug.Log("Sending request to GAS with URL: " + message);  // ここでURLを確認
+        SendGAS.StartCoroutineWrapper(this,message);
     }
 
     // ルーム参加ボタンの処理
     private void ROOMJOIN()
     {
         playerName = "SAME";
-        string url = gasUrl + "?action=joinRoom"
-                           + "&roomId=" + Uri.EscapeDataString(roomId)
-                           + "&player2=" + Uri.EscapeDataString(playerName);
-        StartCoroutine(SendDataToGAS(url));
+        string message = "?action=joinRoom"
+                         + "&roomId=" + Uri.EscapeDataString(roomId)
+                         + "&player2=" + Uri.EscapeDataString(playerName);
+        SendGAS.StartCoroutineWrapper(this, message);
     }
 
     // 設定を開く
@@ -33,6 +35,27 @@ partial class UIButton
         Option.SetActive(true);
     }
 
+    // 感想を送る
+    private void FEEDBACK()
+    {
+        if(TextBox.activeSelf)
+        {
+            string message = "?action=feedBack"
+                            + "&Text="+InputText.text;
+            SendGAS.StartCoroutineWrapper(this, message);
+            // 送信後空白に戻す
+            InputText.text = "";
+            TextBox.SetActive(false);
+            nowSelectObj.SetActive(false);
+
+        }
+        else
+        {
+            TextBox.SetActive(true);
+        }
+    }
+
+    // ほかでも共通で使う
     // ゲーム終了
     private void GAMEEND()
     {
@@ -43,7 +66,10 @@ partial class UIButton
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
     }
+    #endregion
 
+
+    #region [MENUItem]
     // ゲームに戻る
     private void RETURNGAME()
     {
@@ -53,7 +79,7 @@ partial class UIButton
 
         Menu.SetActive(false);
     }
-
+    #endregion
 
     #region OPTION
     /*Lは左ボタンRは右ボタンを意味*/

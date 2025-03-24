@@ -5,6 +5,7 @@ using UnityEngine.Networking;
 using System.Reflection;
 using System;
 using UnityEngine.UI;
+using static SendGAS; // データやり取り
 public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     #region enumData
@@ -16,6 +17,7 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         ROOMJOIN,   // 部屋参加
         OPENOPTION, // 設定を開く
         GAMEEND,    // ゲーム終了
+        FEEDBACK,   // 感想
         None
     }
     // メニューでのボタン
@@ -57,9 +59,13 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
     // メニューオブジェクトの表示、非表示切替に
     [Header("Menuオブジェクト"),SerializeField]GameObject Menu;
     [Header("Optionオブジェクト"),SerializeField]GameObject Option;
+    [Header("TextBoxのオブジェクト"), SerializeField] GameObject TextBox;
+
+    [Header("TextBoxと合わせて文字を取得するため"),SerializeField]InputField InputText;  // InputFieldをInspectorでアタッチ
 
     // アニメーションの設定
     [SerializeField] Animator anim;
+
     [SerializeField] FPSManager fpsManager;
     [SerializeField] ScreenSizeManager screenSizeManager;
     [SerializeField] VolumeController volumeController;
@@ -67,10 +73,6 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
     // プレイヤー名やルームIDを設定
     private string playerName = "Player1";  // 例としてプレイヤー名を設定
     private string roomId = "Room001";  // 例としてルームIDを設定
-
-    // GASのURL
-    private const string gasUrl = 
-    "https://script.google.com/macros/s/AKfycbzZSj5g4eufHFVx8lHrUUXctVeykzFU4Bao1S1PSuI7drKRvcw243y7pkjdzbMKBYITaA/exec";
 
     // UI接触のインターフェース処理
     #region InterFace
@@ -172,23 +174,4 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         }
     }
     #endregion
-
-    // GASにデータを送信するコルーチン
-    private IEnumerator SendDataToGAS(string url)
-    {
-        using (UnityWebRequest request = UnityWebRequest.Get(url))
-        {
-            yield return request.SendWebRequest();
-
-            // リクエストの結果をチェック
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                Debug.Log("GASにデータを送信しました: " + request.downloadHandler.text);
-            }
-            else
-            {
-                Debug.LogError("GASへのデータ送信に失敗しました: " + request.error);
-            }
-        }
-    }
 }
