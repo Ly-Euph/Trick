@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Networking;
 using System.Reflection;
 using System;
 using UnityEngine.UI;
@@ -18,7 +17,10 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         OPENOPTION, // 設定を開く
         GAMEEND,    // ゲーム終了
         FEEDBACK,   // 感想
-        None
+        None,
+        // 追加
+        OK,          // 決定
+        RETURN,      // 戻る
     }
     // メニューでのボタン
     enum MenuButton
@@ -57,23 +59,31 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     /*ものによって使う*/
     // メニューオブジェクトの表示、非表示切替に
-    [Header("Menuオブジェクト"),SerializeField]GameObject Menu;
-    [Header("Optionオブジェクト"),SerializeField]GameObject Option;
-    [Header("TextBoxのオブジェクト"), SerializeField] GameObject TextBox;
-
-    [Header("TextBoxと合わせて文字を取得するため"),SerializeField]InputField InputText;  // InputFieldをInspectorでアタッチ
-
+    [Header("Menuオブジェクト"),SerializeField]
+    GameObject Menu;
+    [Header("Optionオブジェクト"),SerializeField]
+    GameObject Option;
+    [Header("TextBoxのオブジェクト"), SerializeField] 
+    GameObject TextBox;
+    [Header("TextBoxと合わせて文字を取得するため"),SerializeField]
+    InputField InputText;  // InputFieldをInspectorでアタッチ
+    [Header("作成もしくは参加ボタンを押したときに表示するオブジェクト"),SerializeField]
+    GameObject InputPanel;
     // アニメーションの設定
     [SerializeField] Animator anim;
 
+    // 外部スクリプト
     [SerializeField] FPSManager fpsManager;
     [SerializeField] ScreenSizeManager screenSizeManager;
     [SerializeField] VolumeController volumeController;
+    [SerializeField] FieldCheck fieldCheck;
 
     // プレイヤー名やルームIDを設定
     private string playerName = "Player1";  // 例としてプレイヤー名を設定
     private string roomId = "Room001";  // 例としてルームIDを設定
 
+    private bool IsCreate = false;
+    private string message;
     // UI接触のインターフェース処理
     #region InterFace
     public void OnPointerEnter(PointerEventData eventData)

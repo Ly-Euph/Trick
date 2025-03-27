@@ -1,31 +1,36 @@
-using MiscUtil.Linq.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using MyGame.RoomManagement;
+using MiscUtil.Extensions;  // 名前空間のインポート
 partial class UIButton
 {
+    private RoomData roomData;
+
     #region[MenuItem]
     // ルーム作成ボタン
     private void ROOMCREATE()
     {
-        playerName = "NEKO";
-        string message = "?action=createRoom"
-                         + "&roomId=" + Uri.EscapeDataString(roomId)
-                           + "&player1=" + Uri.EscapeDataString(playerName); 
-        Debug.Log("Sending request to GAS with URL: " + message);  // ここでURLを確認
-        SendGAS.StartCoroutineWrapper(this,message);
+        // RoomDataのインスタンスを作成
+        roomData = new RoomData();
+
+        // SaveIsCreate メソッドを呼び出す
+        roomData.SaveIsCreate(true);
+
+        InputPanel.SetActive(true);
     }
 
     // ルーム参加ボタンの処理
     private void ROOMJOIN()
     {
-        playerName = "SAME";
-        string message = "?action=joinRoom"
-                         + "&roomId=" + Uri.EscapeDataString(roomId)
-                         + "&player2=" + Uri.EscapeDataString(playerName);
-        SendGAS.StartCoroutineWrapper(this, message);
+        // RoomDataのインスタンスを作成
+        roomData = new RoomData();
+
+        // SaveIsCreate メソッドを呼び出す
+        roomData.SaveIsCreate(false);
+
+        InputPanel.SetActive(true);
     }
 
     // 設定を開く
@@ -55,6 +60,109 @@ partial class UIButton
         }
     }
 
+    // 作成もしくは参加を行う
+    // 作成もしくは参加を行う
+    private void OK()
+    {
+        if (fieldCheck.IsCheck())
+        {
+            // RoomDataのインスタンスを作成
+            roomData = new RoomData();
+
+            roomId = fieldCheck.GETTEXT_room;
+            playerName = fieldCheck.GETTEXT_name;
+
+            // ルームIDリストをGASから取得して、作成時にもルームIDが重複しないかチェック
+            SendGAS.StartCoroutineWrapper(this);
+
+            // コルーチンが終了するまで待機
+            StartCoroutine(WaitForRoomList());
+
+        }
+    }
+
+    // ルームリスト取得完了を待つコルーチン
+    private IEnumerator WaitForRoomList()
+    {
+        // `check` が `true` になるまで待機
+        while (!SendGAS.GetCHECK())
+        {
+            yield return null; // 次のフレームまで待機
+        }
+        List<string> roomList = SendGAS.GetRoomList(); // 一度だけ取得
+        if (roomList == null)
+        {
+            Debug.LogError("roomList is null");
+        }
+        else if (roomList.Count == 0)
+        {
+            Debug.LogError("roomList is empty");
+        }
+        else
+        {
+            Debug.Log("Room List: " + string.Join(", ", roomList));
+        }
+        // `check` が `true` になったら次の処理に進む
+        if (roomData.ReturnroomData.IsCreate)
+        {
+            // ルーム作成の場合、ルームIDの重複チェック
+            if (roomList.Contains(roomId))
+            {
+                // ルームIDがすでに存在する場合のエラーメッセージ
+                Debug.LogError("このルームIDはすでに存在します。別のIDを選択してください。");
+            }
+            else
+            {
+                // 重複がなければルームを作成
+                string message = "?action=createRoom"
+                                 + "&roomId=" + Uri.EscapeDataString(roomId)
+                                 + "&player1=" + Uri.EscapeDataString(playerName);
+
+                // 保存する
+                roomData.SaveRoomID(roomId);
+                roomData.SavePlayerName(playerName);
+                Debug.Log("Sending request to GAS with URL: " + message);
+                SendGAS.StartCoroutineWrapper(this, message);
+
+                nowSelectObj.SetActive(false);
+                InputPanel.SetActive(false);
+            }
+        }
+        else
+        {
+            // ルーム参加の場合、ルームIDが存在しない場合はエラーを表示
+            if (!roomList.Contains(roomId))
+            {
+                // ルームIDが存在しない場合のエラーメッセージ
+                Debug.LogError("指定されたルームIDは存在しません。");
+            }
+            else
+            {
+                // ルームが存在する場合、参加処理を進める
+                string message = "?action=joinRoom"
+                                 + "&roomId=" + Uri.EscapeDataString(roomId)
+                                 + "&player2=" + Uri.EscapeDataString(playerName);
+
+                // 保存する
+                roomData.SaveRoomID(roomId);
+                roomData.SavePlayerName(playerName);
+                Debug.Log("Sending request to GAS with URL: " + message);
+                SendGAS.StartCoroutineWrapper(this, message);
+
+                nowSelectObj.SetActive(false);
+                InputPanel.SetActive(false);
+            }
+        }
+    }
+
+
+
+    // 参加、作成のパネルから戻る
+    private void RETURN()
+    {
+        nowSelectObj.SetActive(false);
+        InputPanel.SetActive(false);
+    }
     // ほかでも共通で使う
     // ゲーム終了
     private void GAMEEND()
