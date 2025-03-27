@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MyGame.RoomManagement;
-using MiscUtil.Extensions;  // 名前空間のインポート
 partial class UIButton
 {
     private RoomData roomData;
@@ -47,7 +46,7 @@ partial class UIButton
         {
             string message = "?action=feedBack"
                             + "&Text="+InputText.text;
-            SendGAS.StartCoroutineWrapper(this, message);
+            GAS.StartCoroutineWrapper(this, message);
             // 送信後空白に戻す
             InputText.text = "";
             TextBox.SetActive(false);
@@ -61,7 +60,6 @@ partial class UIButton
     }
 
     // 作成もしくは参加を行う
-    // 作成もしくは参加を行う
     private void OK()
     {
         if (fieldCheck.IsCheck())
@@ -73,7 +71,7 @@ partial class UIButton
             playerName = fieldCheck.GETTEXT_name;
 
             // ルームIDリストをGASから取得して、作成時にもルームIDが重複しないかチェック
-            SendGAS.StartCoroutineWrapper(this);
+            GAS.StartCoroutineWrapper(this);
 
             // コルーチンが終了するまで待機
             StartCoroutine(WaitForRoomList());
@@ -85,11 +83,11 @@ partial class UIButton
     private IEnumerator WaitForRoomList()
     {
         // `check` が `true` になるまで待機
-        while (!SendGAS.GetCHECK())
+        while (!GAS.GetCHECK())
         {
             yield return null; // 次のフレームまで待機
         }
-        List<string> roomList = SendGAS.GetRoomList(); // 一度だけ取得
+        List<string> roomList = GAS.GetRoomList(); // 一度だけ取得
         if (roomList == null)
         {
             Debug.LogError("roomList is null");
@@ -122,10 +120,7 @@ partial class UIButton
                 roomData.SaveRoomID(roomId);
                 roomData.SavePlayerName(playerName);
                 Debug.Log("Sending request to GAS with URL: " + message);
-                SendGAS.StartCoroutineWrapper(this, message);
-
-                nowSelectObj.SetActive(false);
-                InputPanel.SetActive(false);
+                GAS.StartCoroutineWrapper(this, message);
             }
         }
         else
@@ -147,15 +142,36 @@ partial class UIButton
                 roomData.SaveRoomID(roomId);
                 roomData.SavePlayerName(playerName);
                 Debug.Log("Sending request to GAS with URL: " + message);
-                SendGAS.StartCoroutineWrapper(this, message);
-
-                nowSelectObj.SetActive(false);
-                InputPanel.SetActive(false);
+                GAS.StartCoroutineWrapper(this, message);
             }
         }
+
+        // 3秒間遅延させる
+        yield return new WaitForSeconds(10f);
+
+        // 行数取得のコルーチン
+        GAS.GetRoomRow(this, roomData.ReturnroomData.roomID);
+         
+        // コルーチンが終了するまで待機
+        StartCoroutine(WaitForRoomRow());
     }
 
+    private IEnumerator WaitForRoomRow()
+    {
+        // `check` が `true` になるまで待機
+        while (!GAS.GetCHECK())
+        {
+            yield return null; // 次のフレームまで待機
+        }
+        
+        roomData.SaveRoomRow(GAS.GetRoomRowNumber());
 
+        Debug.Log(roomData.ReturnroomData.roomRow);
+
+        nowSelectObj.SetActive(false);
+        InputPanel.SetActive(false);
+
+    }
 
     // 参加、作成のパネルから戻る
     private void RETURN()

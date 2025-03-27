@@ -1,4 +1,4 @@
-using System.IO;
+ï»¿using System.IO;
 using UnityEngine;
 
 namespace MyGame.RoomManagement
@@ -6,12 +6,12 @@ namespace MyGame.RoomManagement
     [System.Serializable]
     public class ROOMData
     {
+        public int roomRow;
         public string roomID;
         public string playerName;
         public bool IsCreate = false;
     }
 
-    // MonoBehaviour ‚ğŒp³‚µ‚È‚¢ƒNƒ‰ƒX‚É•ÏX
     public class RoomData
     {
         private string filePath;
@@ -24,55 +24,45 @@ namespace MyGame.RoomManagement
 
         public RoomData()
         {
-            // ‰Šú‰»‚ÌÛ‚Éƒtƒ@ƒCƒ‹ƒpƒX‚ğİ’è
             filePath = Path.Combine(Application.persistentDataPath, "ROOMDATA.json");
-
-            // ‰‰ñƒ[ƒh
             LoadPlayerData();
+        }
+
+        public void SaveRoomRow(int roomRow)
+        {
+            roomData.roomRow = roomRow; // ğŸ”¹ æ—¢å­˜ã®ãƒ‡ãƒ¼ã‚¿ã‚’ä¸Šæ›¸ã
+            SaveToFile();
         }
 
         public void SaveRoomID(string roomID)
         {
-            roomData = new ROOMData { roomID = roomID };
-            string json = JsonUtility.ToJson(roomData);
-            try
-            {
-                File.WriteAllText(filePath, json);
-                //Debug.Log("Room ID saved to JSON!");
-            }
-            catch (IOException ex)
-            {
-                //Debug.LogError("Error saving Room ID: " + ex.Message);
-            }
+            roomData.roomID = roomID; // ğŸ”¹ æ—¢å­˜ã®ãƒ‡ãƒ¼ã‚¿ã‚’ä¸Šæ›¸ã
+            SaveToFile();
         }
 
         public void SavePlayerName(string playerName)
         {
-            roomData = new ROOMData { playerName = playerName };
-            string json = JsonUtility.ToJson(roomData);
-            try
-            {
-                File.WriteAllText(filePath, json);
-               // Debug.Log("Player Name saved to JSON!");
-            }
-            catch (IOException ex)
-            {
-               // Debug.LogError("Error saving Player Name: " + ex.Message);
-            }
+            roomData.playerName = playerName; // ğŸ”¹ æ—¢å­˜ã®ãƒ‡ãƒ¼ã‚¿ã‚’ä¸Šæ›¸ã
+            SaveToFile();
         }
 
         public void SaveIsCreate(bool isCreate)
         {
-            roomData = new ROOMData { IsCreate = isCreate };
-            string json = JsonUtility.ToJson(roomData);
+            roomData.IsCreate = isCreate; // ğŸ”¹ æ—¢å­˜ã®ãƒ‡ãƒ¼ã‚¿ã‚’ä¸Šæ›¸ã
+            SaveToFile();
+        }
+
+        private void SaveToFile()
+        {
             try
             {
+                string json = JsonUtility.ToJson(roomData);
                 File.WriteAllText(filePath, json);
-               // Debug.Log("IsCreate status saved to JSON!");
+                // Debug.Log("Room data saved!");
             }
             catch (IOException ex)
             {
-               // Debug.LogError("Error saving IsCreate status: " + ex.Message);
+                // Debug.LogError("Error saving room data: " + ex.Message);
             }
         }
 
@@ -80,7 +70,6 @@ namespace MyGame.RoomManagement
         {
             try
             {
-                // ƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚éê‡‚Ì‚İ“Ç‚İ‚Ş
                 if (File.Exists(filePath))
                 {
                     string json = File.ReadAllText(filePath);
@@ -88,14 +77,12 @@ namespace MyGame.RoomManagement
                 }
                 else
                 {
-                   // Debug.LogWarning("Save file does not exist, creating a new one...");
-                    // ƒtƒ@ƒCƒ‹‚ª‚È‚¢ê‡‚ÍV‚½‚Éƒf[ƒ^‚ğì¬
                     roomData = new ROOMData();
                 }
             }
             catch (IOException ex)
             {
-                //Debug.LogError("Error loading room data: " + ex.Message);
+                // Debug.LogError("Error loading room data: " + ex.Message);
             }
         }
     }

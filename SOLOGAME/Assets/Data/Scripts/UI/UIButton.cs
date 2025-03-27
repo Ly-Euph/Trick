@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using System.Reflection;
 using System;
 using UnityEngine.UI;
-using static SendGAS; // データやり取り
+using static GAS; // データやり取り
 public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     #region enumData
