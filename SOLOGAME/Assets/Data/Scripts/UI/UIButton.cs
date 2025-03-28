@@ -69,6 +69,8 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
     InputField InputText;  // InputFieldをInspectorでアタッチ
     [Header("作成もしくは参加ボタンを押したときに表示するオブジェクト"),SerializeField]
     GameObject InputPanel;
+    [Header("Waitパネル"), SerializeField]
+    GameObject WaitObj;
     // アニメーションの設定
     [SerializeField] Animator anim;
 

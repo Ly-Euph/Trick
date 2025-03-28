@@ -70,6 +70,10 @@ partial class UIButton
             roomId = fieldCheck.GETTEXT_room;
             playerName = fieldCheck.GETTEXT_name;
 
+            // 作成中が表示されているオブジェクトを表示に
+
+            WaitObj.SetActive(true);
+  
             // ルームIDリストをGASから取得して、作成時にもルームIDが重複しないかチェック
             GAS.StartCoroutineWrapper(this);
 
@@ -108,6 +112,11 @@ partial class UIButton
             {
                 // ルームIDがすでに存在する場合のエラーメッセージ
                 Debug.LogError("このルームIDはすでに存在します。別のIDを選択してください。");
+                WaitObj.GetComponent<CreateJoinLoad>().Error();
+                // 遅延させる
+                yield return new WaitForSeconds(3f);
+                WaitObj.SetActive(false);
+                yield break;
             }
             else
             {
@@ -130,6 +139,11 @@ partial class UIButton
             {
                 // ルームIDが存在しない場合のエラーメッセージ
                 Debug.LogError("指定されたルームIDは存在しません。");
+                WaitObj.GetComponent<CreateJoinLoad>().Error();
+                // 遅延させる
+                yield return new WaitForSeconds(3f);
+                WaitObj.SetActive(false);
+                yield break;
             }
             else
             {
@@ -146,7 +160,7 @@ partial class UIButton
             }
         }
 
-        // 3秒間遅延させる
+        // 遅延させる
         yield return new WaitForSeconds(10f);
 
         // 行数取得のコルーチン
@@ -163,7 +177,10 @@ partial class UIButton
         {
             yield return null; // 次のフレームまで待機
         }
-        
+
+        // 作成中が表示されているオブジェクトを非表示に
+        WaitObj.SetActive(false);
+
         roomData.SaveRoomRow(GAS.GetRoomRowNumber());
 
         Debug.Log(roomData.ReturnroomData.roomRow);

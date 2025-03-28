@@ -12,6 +12,20 @@ public static class GAS
     private static int roomRowNumber = -1; // ルームの行番号を保存（初期値は-1）
     static bool check = false;
 
+    // GASからのレスポンスデータ
+    [System.Serializable]
+    public class RoomListWrapper
+    {
+        public List<string> roomIds;
+    }
+    [System.Serializable]
+    public class RoomRowResponse
+    {
+        public int rowNumber;
+        public string error;
+    }
+
+    // GAS側に送信
     private static IEnumerator SendDataToGAS(string message)
     {
         string url = gasUrl + message;
@@ -36,12 +50,7 @@ public static class GAS
         }
     }
 
-    [System.Serializable]
-    public class RoomListWrapper
-    {
-        public List<string> roomIds;
-    }
-
+    // ルームIDリストを取得する
     public static IEnumerator GetRoomListFromGAS()
     {
         string url = gasUrl + "?action=getRoomList";  // ルームIDリストを取得するためのURL
@@ -89,20 +98,6 @@ public static class GAS
         check = true;
     }
 
-    // 外部からルームリストを取得するメソッド
-    public static List<string> GetRoomList()
-    {
-        return roomList;
-    }
-
-    // GASからのレスポンスデータ
-    [System.Serializable]
-    public class RoomRowResponse
-    {
-        public int rowNumber;
-        public string error;
-    }
-
     // ルームIDから行番号を取得する関数
     public static IEnumerator GetRoomRowFromGAS(string roomId)
     {
@@ -146,8 +141,30 @@ public static class GAS
         }
         check = true;
     }
+   
 
-    // ルームの行番号を取得する関数
+    // コルーチンをラップするためのメソッド
+    public static void StartCoroutineWrapper(MonoBehaviour caller, string message)
+    {
+        caller.StartCoroutine(SendDataToGAS(message));
+    }
+    public static void StartCoroutineWrapper(MonoBehaviour caller)
+    {
+        check = false;
+        caller.StartCoroutine(GetRoomListFromGAS());
+    }
+    public static void GetRoomRow(MonoBehaviour caller, string roomID)
+    {
+        check = false;
+        caller.StartCoroutine(GetRoomRowFromGAS(roomID));
+    }
+
+    // 外部からルームリストを取得
+    public static List<string> GetRoomList()
+    {
+        return roomList;
+    }
+    // ルームの行番号を取得
     public static int GetRoomRowNumber()
     {
         if (roomRowNumber != -1)
@@ -165,21 +182,5 @@ public static class GAS
     public static bool GetCHECK()
     {
         return check;
-    }
-
-    // コルーチンをラップするためのメソッド
-    public static void StartCoroutineWrapper(MonoBehaviour caller, string message)
-    {
-        caller.StartCoroutine(SendDataToGAS(message));
-    }
-    public static void StartCoroutineWrapper(MonoBehaviour caller)
-    {
-        check = false;
-        caller.StartCoroutine(GetRoomListFromGAS());
-    }
-    public static void GetRoomRow(MonoBehaviour caller, string roomID)
-    {
-        check = false;
-        caller.StartCoroutine(GetRoomRowFromGAS(roomID));
     }
 }
