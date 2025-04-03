@@ -130,6 +130,14 @@ partial class UIButton
                 roomData.SavePlayerName(playerName);
                 Debug.Log("Sending request to GAS with URL: " + message);
                 GAS.StartCoroutineWrapper(this, message);
+
+                // 遅延させる
+                yield return new WaitForSeconds(8f);
+
+                // 行数取得のコルーチン
+                // 入室のタイミングで部屋の名前にプラスで_occupiedが入るので
+                // 文字列を追加することでさらに検索出来ない仕様
+                GAS.GetRoomRow(this, roomData.ReturnroomData.roomID);
             }
         }
         else
@@ -157,19 +165,19 @@ partial class UIButton
                 roomData.SavePlayerName(playerName);
                 Debug.Log("Sending request to GAS with URL: " + message);
                 GAS.StartCoroutineWrapper(this, message);
+
+                // 遅延させる
+                yield return new WaitForSeconds(8f);
+
+                // 行数取得のコルーチン
+                // 入室のタイミングで部屋の名前にプラスで_occupiedが入るので
+                // 文字列を追加することでさらに検索出来ない仕様
+                GAS.GetRoomRow(this, roomData.ReturnroomData.roomID + "_occupied");
             }
         }
-
-        // 遅延させる
-        yield return new WaitForSeconds(10f);
-
-        // 行数取得のコルーチン
-        GAS.GetRoomRow(this, roomData.ReturnroomData.roomID);
-         
         // コルーチンが終了するまで待機
         StartCoroutine(WaitForRoomRow());
     }
-
     private IEnumerator WaitForRoomRow()
     {
         // `check` が `true` になるまで待機
@@ -185,9 +193,13 @@ partial class UIButton
 
         Debug.Log(roomData.ReturnroomData.roomRow);
 
+        // プレイヤーは作成もしくは参加を行ったので
+        // マッチングチェックを行いゲームシーンに切り替える
+        // これはマッチングチェックを行うタイミング
+        NowMatch = true;
+
         nowSelectObj.SetActive(false);
         InputPanel.SetActive(false);
-
     }
 
     // 参加、作成のパネルから戻る

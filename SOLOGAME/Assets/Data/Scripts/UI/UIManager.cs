@@ -1,16 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
     private UIButton[] uiButtons; // UIButtonの配列
+
+    FadeInOut fade; // フェード機能
 
     private static UIManager instance; // Singletonインスタンス
 
     [Header("FPSManager"), SerializeField] FPSManager fps;
     [Header("ScreenSizeManager"), SerializeField] ScreenSizeManager size;
     [Header("VolumeController"), SerializeField] VolumeController volume;
+
+    private float timer = 0;
 
     void Awake()
     {
@@ -30,7 +35,7 @@ public class UIManager : MonoBehaviour
     {
         // シーン内のすべてのUIButtonを検索
         uiButtons = FindObjectsOfType<UIButton>(true);
-        FadeInOut fade = FadeInOut.CreateInstance();
+        fade = FadeInOut.CreateInstance();
         // データの読み込み
         fps.LOAD();
         size.LOAD();
@@ -49,6 +54,39 @@ public class UIManager : MonoBehaviour
             {
                 button.UpdateButton(); // ボタンがUpdateBUTTONを実行
             }
+        }   
+    }
+
+    private void FixedUpdate()
+    {
+        timer += Time.deltaTime;
+        if (timer >= 5.0f)
+        {
+            foreach (var button in uiButtons)
+            {
+                if (button.ReturnNowMatch())
+                {
+                    // コルーチンが終了するまで待機
+                    StartCoroutine(WaitForMatch());
+                }
+            }
+        }
+    }
+
+    private IEnumerator WaitForMatch()
+    {
+        timer = 0;
+        GAS.CheckMatch(this);
+        // `check` が `true` になるまで待機
+        while (!GAS.GetCHECK())
+        {
+            yield return null; // 次のフレームまで待機
+        }
+
+        // マッチングしたらここでシーン遷移
+        if (GAS.GetIsMatch())
+        {
+            fade.LoadScene("Game");
         }
     }
 }

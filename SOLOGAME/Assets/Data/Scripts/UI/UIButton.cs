@@ -84,8 +84,8 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
     private string playerName = "Player1";  // 例としてプレイヤー名を設定
     private string roomId = "Room001";  // 例としてルームIDを設定
 
-    private bool IsCreate = false;
-    private string message;
+    private bool NowMatch = false; // 入力処理を終えて作成もしくは参加ボタンを押したかの判定
+    private bool IsCreate = false; // 部屋の作成者の判定
     // UI接触のインターフェース処理
     #region InterFace
     public void OnPointerEnter(PointerEventData eventData)
@@ -136,6 +136,15 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         }
     }
 
+    /// <summary>
+    /// マッチングチェックを行うタイミング
+    /// </summary>
+    /// <returns>NowMatchを返します。これは作成もしくは参加後にtrueになります</returns>
+    public bool ReturnNowMatch()
+    { return NowMatch; }
+
+    // これは関数のマッチング
+    // enumと同じ名前の関数を実行する
     #region MatchingMethod
     private void InvokeMatchingMethod(TitleButton kButton)
     {

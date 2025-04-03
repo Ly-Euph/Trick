@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections.Generic;
 using System;
+using Unity.Jobs.LowLevel.Unsafe;
 
 public static class GAS
 {
@@ -10,6 +11,7 @@ public static class GAS
     // ルームリストを保持する静的変数
     private static List<string> roomList = new List<string>();
     private static int roomRowNumber = -1; // ルームの行番号を保存（初期値は-1）
+    private static bool isMatch = false;
     static bool check = false;
 
     // GASからのレスポンスデータ
@@ -24,7 +26,13 @@ public static class GAS
         public int rowNumber;
         public string error;
     }
-
+    // マッチングチェックのレスポンスを格納するクラス
+    [System.Serializable]
+    public class MatchCheckResponse
+    {
+        public bool matched;
+        public string error;
+    }
     // GAS側に送信
     private static IEnumerator SendDataToGAS(string message)
     {
@@ -141,7 +149,49 @@ public static class GAS
         }
         check = true;
     }
-   
+
+    // マッチングチェック
+    public static IEnumerator CheckMatchStatus(int rowNumber)
+    {
+        string url = gasUrl + "?action=matchCheck&rowNumber=" + rowNumber;
+
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string responseText = request.downloadHandler.text;
+                Debug.Log("GAS Response: " + responseText);  // レスポンス内容をデバッグ
+
+                try
+                {
+                    // JSONのレスポンスをMatchCheckResponseにパース
+                    MatchCheckResponse matchResponse = JsonUtility.FromJson<MatchCheckResponse>(responseText);
+                    Debug.Log(matchResponse);
+                    // エラーメッセージがある場合、エラーをログに出力
+                    if (!string.IsNullOrEmpty(matchResponse.error))
+                    {
+                        Debug.LogError("GAS Error: " + matchResponse.error);
+                    }
+                    else
+                    {
+                        // マッチング結果を保存
+                        isMatch = matchResponse.matched;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("JSONパースエラー: " + e.Message);
+                }
+            }
+            else
+            {
+                Debug.LogError("GASからマッチングチェックの取得に失敗しました: " + request.error);
+            }
+        }
+        check = true;
+    }
 
     // コルーチンをラップするためのメソッド
     public static void StartCoroutineWrapper(MonoBehaviour caller, string message)
@@ -158,11 +208,21 @@ public static class GAS
         check = false;
         caller.StartCoroutine(GetRoomRowFromGAS(roomID));
     }
+    public static void CheckMatch(MonoBehaviour caller)
+    {
+        check = false;
+        caller.StartCoroutine(CheckMatchStatus(roomRowNumber));
+    }
 
     // 外部からルームリストを取得
     public static List<string> GetRoomList()
     {
         return roomList;
+    }
+    // マッチングチェック
+    public static bool GetIsMatch()
+    {
+        return isMatch;
     }
     // ルームの行番号を取得
     public static int GetRoomRowNumber()
