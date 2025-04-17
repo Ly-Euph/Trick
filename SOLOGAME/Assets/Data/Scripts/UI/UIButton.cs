@@ -1,12 +1,13 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Networking;
 using System.Reflection;
 using System;
 using UnityEngine.UI;
+using static GAS; // データやり取り
 public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    #region enumData
     // ボタンの種類を設定
     // タイトルシーンでのボタン
     enum TitleButton
@@ -15,7 +16,11 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         ROOMJOIN,   // 部屋参加
         OPENOPTION, // 設定を開く
         GAMEEND,    // ゲーム終了
-        None
+        FEEDBACK,   // 感想
+        None,
+        // 追加
+        OK,          // 決定
+        RETURN,      // 戻る
     }
     // メニューでのボタン
     enum MenuButton
@@ -35,41 +40,52 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         /*FPS値の表示のボタン*/
         FPS_MODE_L, // FPSの左ボタン
         FPS_MODE_R, // FPSの右ボタン
-        None
-    }
+        /*画面サイズ切り替えのボタン*/
+        SIZEMODE_L, // 切替の左ボタン
+        SIZEMODE_R, // 切替の右ボタン
 
+        FIN,        // 設定完了
+        None,
+    }
     // 基本的にはNoneで設定して使うときに変更一種類のみに設定すること
     [Header("ボタンの種類選択"), SerializeField] TitleButton titleButton=TitleButton.None;
     [Header("ボタンの種類選択"), SerializeField] MenuButton  menuButton=MenuButton.None;
     [Header("ボタンの種類選択"), SerializeField] LRButton lrButton = LRButton.None;
-
-    // アニメーションの設定
-    [SerializeField] Animator anim;
+    #endregion
 
     // 触れたときに分かりやすくするために表示する
     [Header("選択中に表示するオブジェクト"), SerializeField]
     GameObject nowSelectObj;
 
-
     /*ものによって使う*/
-    // メニューオブジェクト
+    // メニューオブジェクトの表示、非表示切替に
+    [Header("Menuオブジェクト"),SerializeField]
     GameObject Menu;
-    // FPSの表示をしているテキスト
-    Text FpsText;
-    Text FpsModeText;
-    FPSManager fpsManager;
+    [Header("Optionオブジェクト"),SerializeField]
+    GameObject Option;
+    [Header("TextBoxのオブジェクト"), SerializeField] 
+    GameObject TextBox;
+    [Header("TextBoxと合わせて文字を取得するため"),SerializeField]
+    InputField InputText;  // InputFieldをInspectorでアタッチ
+    [Header("作成もしくは参加ボタンを押したときに表示するオブジェクト"),SerializeField]
+    GameObject InputPanel;
+    [Header("Waitパネル"), SerializeField]
+    GameObject WaitObj;
+    // アニメーションの設定
+    [SerializeField] Animator anim;
 
+    // 外部スクリプト
+    [SerializeField] FPSManager fpsManager;
+    [SerializeField] ScreenSizeManager screenSizeManager;
+    [SerializeField] VolumeController volumeController;
+    [SerializeField] FieldCheck fieldCheck;
 
     // プレイヤー名やルームIDを設定
     private string playerName = "Player1";  // 例としてプレイヤー名を設定
     private string roomId = "Room001";  // 例としてルームIDを設定
 
-    private string gasUrl = "https://script.google.com/macros/s/AKfycbzZSj5g4eufHFVx8lHrUUXctVeykzFU4Bao1S1PSuI7drKRvcw243y7pkjdzbMKBYITaA/exec";  // GASのURL
-
-    #region OPTIONSTRING
-    string[] SIZEMODE = { "FullScreen","Window"};
-    #endregion
-
+    private bool NowMatch = false; // 入力処理を終えて作成もしくは参加ボタンを押したかの判定
+    private bool IsCreate = false; // 部屋の作成者の判定
     // UI接触のインターフェース処理
     #region InterFace
     public void OnPointerEnter(PointerEventData eventData)
@@ -95,22 +111,9 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     #endregion
 
-    void Start()
-    {
-        if (menuButton == MenuButton.OPENOPTION)
-        {
-            Menu = GameObject.Find("Menu");
-        }
-        // FPSの値を表示するオプションのテキスト
-        if(lrButton!=LRButton.None)
-        {
-            fpsManager=GameObject.Find("SystemManager").GetComponent<FPSManager>();
-            FpsText = GameObject.Find("NowFPSnum").GetComponent<Text>();
-            FpsModeText = GameObject.Find("NowFPSMode").GetComponent<Text>();
-
-        }
-    }
-    public void UpdateBUTTON()
+    // 各種UI一つ一つにアップデートを行うと処理速度が心配のため
+    // UIManagerにて一括管理しておく
+    public void UpdateButton()
     {
         // 触れた状態で左クリックを押したら処理
         if (nowSelectObj.activeSelf)
@@ -133,6 +136,15 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         }
     }
 
+    /// <summary>
+    /// マッチングチェックを行うタイミング
+    /// </summary>
+    /// <returns>NowMatchを返します。これは作成もしくは参加後にtrueになります</returns>
+    public bool ReturnNowMatch()
+    { return NowMatch; }
+
+    // これは関数のマッチング
+    // enumと同じ名前の関数を実行する
     #region MatchingMethod
     private void InvokeMatchingMethod(TitleButton kButton)
     {
@@ -183,23 +195,4 @@ public partial class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExi
         }
     }
     #endregion
-
-    // GASにデータを送信するコルーチン
-    private IEnumerator SendDataToGAS(string url)
-    {
-        using (UnityWebRequest request = UnityWebRequest.Get(url))
-        {
-            yield return request.SendWebRequest();
-
-            // リクエストの結果をチェック
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                Debug.Log("GASにデータを送信しました: " + request.downloadHandler.text);
-            }
-            else
-            {
-                Debug.LogError("GASへのデータ送信に失敗しました: " + request.error);
-            }
-        }
-    }
 }
