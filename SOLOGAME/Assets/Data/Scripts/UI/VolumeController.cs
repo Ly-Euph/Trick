@@ -6,7 +6,6 @@ public class VolumeController : MonoBehaviour
     public Slider volumeSlider;  // スライダーUIをインスペクターから設定
     private const string VolumeKey = "MasterVolume";  // PlayerPrefsに保存するためのキー
 
-
     // 音量を保存するメソッド
     public void SAVE()
     {
@@ -25,5 +24,15 @@ public class VolumeController : MonoBehaviour
         volumeSlider.value = savedVolume;  // スライダーに設定
         AudioListener.volume = savedVolume;  // 読み込んだ音量を適用
         Debug.Log("音量を読み込みました: " + savedVolume);
+    }
+
+    // 音量を保存するメソッド
+    public void OnSliderValueChanged(float value)
+    {
+        // 現在のスライダーの値をPlayerPrefsに保存
+        PlayerPrefs.SetFloat(VolumeKey, volumeSlider.value);
+        PlayerPrefs.Save();  // 保存を確定
+        AudioListener.volume = volumeSlider.value;  // 読み込んだ音量を適用
+        Debug.Log("音量を保存しました: " + volumeSlider.value);
     }
 }
